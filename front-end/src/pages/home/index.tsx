@@ -88,12 +88,6 @@ const Home = () => {
           placeholder="Digite o nome do produto"
           className="flex-1"
         />
-        <Button
-          icon="pi pi-search"
-          type="button"
-          className="p-button-sm"
-          onClick={() => console.log("Filtrar: ", search)}
-        />
       </div>
 
       <DataScroller
