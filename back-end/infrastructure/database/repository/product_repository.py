@@ -1,5 +1,6 @@
 from sqlalchemy import asc, desc
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, Query
+from sqlalchemy.sql.expression import or_
 from infrastructure.database.model.product_model import ProductModel
 from domain.dto.create_product_dto import CreateProductDto
 from domain.dto.list_query_params import ListQueryParams
@@ -27,7 +28,20 @@ class ProductRepository:
 
     def findAll(self, query: ListQueryParams) -> list[ProductEntity]:
         order = asc(ProductModel.id) if query.sort == SortOrderEnum.ASC else desc(ProductModel.id)
-        product_models = self.db.query(ProductModel).order_by(order).offset(query.offset()).limit(query.limit).all()
+
+        product_query: Query = self.db.query(ProductModel).order_by(order)
+
+        if query.search:
+            search_pattern = f"%{query.search}%"
+            product_query = product_query.filter(
+                or_(
+                    ProductModel.name.ilike(search_pattern),
+                    ProductModel.ean.ilike(search_pattern),
+                    ProductModel.description.ilike(search_pattern)
+                )
+            )
+
+        product_models = product_query.offset(query.offset()).limit(query.limit).all()
 
         return [ProductEntity(**vars(product)) for product in product_models]
 
