@@ -6,7 +6,7 @@ import {
   ProductEntity,
 } from "./interfaces";
 
-const server = axios.create({ baseURL: process.env.REACT_APP_BACK_END_URL });
+const server = axios.create({ baseURL: process.env.REACT_APP_BACK_END_URL ?? 'http://localhost:8000' });
 
 const listProduct = async (
   page = 1,
