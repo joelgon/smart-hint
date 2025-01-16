@@ -1,26 +1,18 @@
 import { useEffect, useState } from "react";
 import { DataScroller } from "primereact/datascroller";
 import { Button } from "primereact/button";
-import { Rating } from "primereact/rating";
-import { Tag } from "primereact/tag";
+import { Link } from "react-router-dom";
+import { InputText } from "primereact/inputtext";
+
 import { listProduct } from "../../services/api";
 import { ProductEntity } from "../../services/api/interfaces";
-import { Link } from "react-router-dom";
 
 const Home = () => {
+  const [search, setSearch] = useState("");
   const [page, setPage] = useState<number>(1);
+  const [lastPage, setLastPage] = useState(false);
   const [disableButton, setDisableButton] = useState<boolean>(false);
   const [products, setProducts] = useState<Array<ProductEntity>>([]);
-
-  const previus = async () => {
-    const updatedPage = page - 1 <= 0 ? 1 : page - 1;
-    setPage(updatedPage);
-  };
-
-  const next = async () => {
-    const updatedPage = page + 1;
-    setPage(updatedPage);
-  };
 
   const itemTemplate = (data: ProductEntity) => {
     return (
@@ -65,41 +57,57 @@ const Home = () => {
   };
 
   useEffect(() => {
+    setPage(1)
+  }, [search])
+
+  useEffect(() => {
     const fetchProducts = async () => {
       setDisableButton(true);
 
-      try {
-        const product = await listProduct(page);
+      const product = await listProduct(page, 20, search);
 
-        setProducts(product);
-      } catch (error) {
-        console.log(error);
-      }
+      if (product.length < 20) setLastPage(true);
+      else setLastPage(false);
+
+      setProducts(product);
 
       setDisableButton(false);
     };
 
     fetchProducts();
-  }, [page]);
+  }, [page, search]);
 
   return (
-    <>
-      {/* <Button label="Filtrar" id="filterToggle" />
-
-      <div className="filter-section" id="filterSection">
-        <input type="text" placeholder="Pesquisar Produto..." />
-        <Button label="Aplicar Filtro" />
-      </div> */}
+    <div className="w-full">
+      <div className="w-full mb-4 flex align-items-center w-full gap-2">
+        <InputText
+          id="name"
+          name="name"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Digite o nome do produto"
+          className="flex-1"
+        />
+        <Button
+          icon="pi pi-search"
+          type="button"
+          className="p-button-sm"
+          onClick={() => console.log("Filtrar: ", search)}
+        />
+      </div>
 
       <DataScroller
         value={products}
         itemTemplate={itemTemplate}
-        rows={5}
+        rows={20}
         inline
-        scrollHeight="500px"
+        scrollHeight="600px"
         header={
-          <div className="flex p-justify-between" >
-              <h3>Consulte os seus Produtos cadastrados na sua Loja ou realize o cadastro de novos Produtos</h3>
+          <div className="flex p-justify-between">
+            <h3>
+              Consulte os seus Produtos cadastrados na sua Loja ou realize o
+              cadastro de novos Produtos
+            </h3>
             <Link
               to="/register"
               className="p-button p-component"
@@ -109,13 +117,25 @@ const Home = () => {
             </Link>
           </div>
         }
+        className="w-full h-full"
       />
 
-      {/* <div className="pagination">
-        <Button id="previus" label="&laquo; Anterior" onClick={() => previus()} disabled={disableButton}/>
-        <Button id="next" label="Próximo &raquo;" onClick={() => next()} disabled={disableButton}/>
-      </div> */}
-    </>
+      <div className="flex justify-content-center align-items-center mt-1">
+        <Button
+          icon="pi pi-chevron-left"
+          disabled={page === 1 || disableButton}
+          onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+          className="mr-2"
+        />
+        <Button
+          icon="pi pi-chevron-right"
+          iconPos="right"
+          className="mr-2"
+          disabled={disableButton || lastPage}
+          onClick={() => setPage((prev) => prev + 1)}
+        />
+      </div>
+    </div>
   );
 };
 

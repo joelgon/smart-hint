@@ -10,13 +10,15 @@ const server = axios.create({ baseURL: process.env.REACT_APP_BACK_END_URL });
 
 const listProduct = async (
   page = 1,
-  limit = 20
+  limit = 20,
+  search?: string
 ): Promise<Array<ProductEntity>> => {
+  const searchQuery = search ? `&search=${search}` : ''
   const response = await server.get<
     any,
     AxiosResponse<Array<ProductEntity>, any>,
     undefined
-  >(`api/products?page=${page}&limit=${limit}`, {
+  >(`api/products?page=${page}&limit=${limit}${searchQuery}`, {
     headers: { trace_id: randomUUID() },
   });
 
