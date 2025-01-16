@@ -37,6 +37,7 @@ services:
       - AWS_SECRET_ACCESS_KEY=test
     volumes:
       - "./localstack:/var/lib/localstack"
+      - "./s3-config:/etc/localstack/init/ready.d/"
 
 volumes:
   postgres_data:
