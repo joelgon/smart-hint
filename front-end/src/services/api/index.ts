@@ -6,14 +6,16 @@ import {
   ProductEntity,
 } from "./interfaces";
 
-const server = axios.create({ baseURL: process.env.REACT_APP_BACK_END_URL ?? 'http://localhost:8000' });
+const server = axios.create({
+  baseURL: process.env.REACT_APP_BACK_END_URL ?? "http://localhost:8000",
+});
 
-const listProduct = async (
+export const listProduct = async (
   page = 1,
   limit = 20,
   search?: string
 ): Promise<Array<ProductEntity>> => {
-  const searchQuery = search ? `&search=${search}` : ''
+  const searchQuery = search ? `&search=${search}` : "";
   const response = await server.get<
     any,
     AxiosResponse<Array<ProductEntity>, any>,
@@ -25,7 +27,7 @@ const listProduct = async (
   return response.data;
 };
 
-const createProduct = async (
+export const createProduct = async (
   body: ICreateProductProps
 ): Promise<ProductCreated> => {
   const response = await server.post<
@@ -37,8 +39,12 @@ const createProduct = async (
   return response.data;
 };
 
-const putObject = async (url: string, data: any) => {
-    await server.put(url, data);
-}
+export const putObject = async (url: string, data: any) => {
+  await server.put(url, data);
+};
 
-export { listProduct, createProduct, putObject };
+export const updatedProject = async (id: number, product: ICreateProductProps) => {
+  await server.patch(`api/products/${id}`, product, {
+    headers: { trace_id: randomUUID() },
+  });
+};

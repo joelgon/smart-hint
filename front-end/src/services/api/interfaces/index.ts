@@ -4,6 +4,7 @@ export interface ICreateProductProps {
   ean: string;
   price: number;
   local: "Evento" | "Loja";
+  active: boolean;
 }
 
 export interface ProductEntity {
@@ -15,7 +16,7 @@ export interface ProductEntity {
   price: number;
   created_at: string;
   active: boolean;
-  local: "event" | "store";
+  local: "Evento" | "Loja";
 }
 
 export interface ProductCreated {

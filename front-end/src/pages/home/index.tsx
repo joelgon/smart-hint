@@ -1,18 +1,91 @@
-import { useEffect, useState } from "react";
+import {
+  Dispatch,
+  SetStateAction,
+  useEffect,
+  useState,
+} from "react";
 import { DataScroller } from "primereact/datascroller";
 import { Button } from "primereact/button";
 import { Link } from "react-router-dom";
 import { InputText } from "primereact/inputtext";
+import { ValidationError } from "yup";
 
-import { listProduct } from "../../services/api";
-import { ProductEntity } from "../../services/api/interfaces";
+import { listProduct, updatedProject } from "../../services/api";
+import {
+  ICreateProductProps,
+  ProductEntity,
+} from "../../services/api/interfaces";
+import { Dialog } from "primereact/dialog";
+import ProductForm from "../../components/product-form";
+import { createProductSchema } from "../../utils/validators/create-product.validator";
 
 const Home = () => {
+  const [visible, setVisible] = useState(false);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState<number>(1);
   const [lastPage, setLastPage] = useState(false);
   const [disableButton, setDisableButton] = useState<boolean>(false);
   const [products, setProducts] = useState<Array<ProductEntity>>([]);
+  const [product, setProduct] = useState<ProductEntity | null>(null);
+  const [errors, setErrors] = useState<
+    Partial<Record<keyof ICreateProductProps, string>>
+  >({});
+
+  const openModal = (id: string) => {
+    setVisible(true);
+
+    const selectedProduct = products.find(
+      (product) => product.id.toString() === id
+    );
+    if (selectedProduct) setProduct(structuredClone(selectedProduct));
+  };
+
+  const requestUpdateProduct = async (updatedProduct: ProductEntity | null) => {
+    try {
+      if (!updatedProduct) return;
+
+      const productUpdate: ICreateProductProps = {
+        active: updatedProduct.active,
+        description: updatedProduct.description,
+        ean: updatedProduct.ean,
+        local: updatedProduct.local,
+        name: updatedProduct.name,
+        price: updatedProduct.price,
+      };
+
+      await createProductSchema.validate(
+        { ...productUpdate, selectedFile: null },
+        {
+          abortEarly: false,
+        }
+      );
+
+      await updatedProject(updatedProduct.id, productUpdate);
+
+      const newProducts = products.map((p) =>
+        p.id.toString() === updatedProduct.id.toString()
+          ? { ...p, ...productUpdate }
+          : p
+      );
+      setProducts(newProducts);
+
+      setVisible(false);
+    } catch (error) {
+      console.log("catch caralho", JSON.stringify(error));
+      if (error instanceof ValidationError) {
+        const fieldErrors: Partial<Record<keyof ICreateProductProps, string>> =
+          {};
+
+        error.inner.forEach((err) => {
+          if (err.path)
+            fieldErrors[err.path as keyof ICreateProductProps] = err.message;
+        });
+
+        setErrors(fieldErrors);
+      }
+      setVisible(false);
+    }
+  };
 
   const itemTemplate = (data: ProductEntity) => {
     return (
@@ -38,17 +111,19 @@ const Home = () => {
             <div className="flex flex-row lg:flex-column align-items-center lg:align-items-end gap-4 lg:gap-2">
               <span className="text-2xl font-semibold">{data.price}</span>
               <Button
+                id={data.id.toString()}
                 icon="pi pi-pencil"
                 label="Editar"
                 disabled={false}
                 severity="warning"
-              ></Button>
+                onClick={(e) => openModal(e.currentTarget.id)}
+              />
               <Button
                 icon="pi pi-trash"
                 label="Excluir"
                 disabled={false}
                 severity="danger"
-              ></Button>
+              />
             </div>
           </div>
         </div>
@@ -57,19 +132,19 @@ const Home = () => {
   };
 
   useEffect(() => {
-    setPage(1)
-  }, [search])
+    setPage(1);
+  }, [search]);
 
   useEffect(() => {
     const fetchProducts = async () => {
       setDisableButton(true);
 
-      const product = await listProduct(page, 20, search);
+      const response = await listProduct(page, 20, search);
 
-      if (product.length < 20) setLastPage(true);
+      if (response.length < 20) setLastPage(true);
       else setLastPage(false);
 
-      setProducts(product);
+      setProducts(response);
 
       setDisableButton(false);
     };
@@ -129,6 +204,24 @@ const Home = () => {
           onClick={() => setPage((prev) => prev + 1)}
         />
       </div>
+      <Dialog
+        visible={visible}
+        style={{ width: "50vw" }}
+        onHide={() => setVisible(false)}
+      >
+        <div className="w-full h-full flex flex-column justify-content-center align-items-center ">
+          <ProductForm
+            btnLabel="Atualizar Produto"
+            errorsState={[errors, setErrors]}
+            productState={[
+              product as ICreateProductProps,
+              setProduct as Dispatch<SetStateAction<ICreateProductProps>>,
+            ]}
+            cb={requestUpdateProduct}
+            selectedFileState={[null, null]}
+          />
+        </div>
+      </Dialog>
     </div>
   );
 };

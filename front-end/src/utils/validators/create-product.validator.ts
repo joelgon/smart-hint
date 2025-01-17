@@ -38,15 +38,18 @@ export const createProductSchema = Yup.object().shape({
     .required("O local é obrigatório")
     .oneOf(["Evento", "Loja"], `O local deve ser 'Evento' ou 'Loja'`),
   selectedFile: Yup.mixed()
-    .required("O arquivo é obrigatório")
+    .nullable()
     .test(
       "is-file",
       "Você deve selecionar um arquivo válido",
-      (value) => value instanceof File
+      (value) => value === null || value instanceof File
     )
     .test(
       "is-png",
       "O arquivo deve ser uma imagem PNG",
-      (value) => value && (value as File)?.type === "image/png"
+      (value) => value === null || (value as File)?.type === "image/png"
     ),
+  active: Yup.boolean()
+    .required("O campo active é obrigatório")
+    .typeError("O campo active deve ser verdadeiro ou falso"),
 });
