@@ -6,10 +6,11 @@ import boto3
 load_dotenv()
 
 endpoint_url = os.getenv("S3_ENDPOINT")
+network_endpoint_url = os.getenv("NETWORK_S3_ENDPOINT")
 
 class PreSignedUrlPut:
     def __init__(self):
-        self.s3 = boto3.client('s3', endpoint_url=endpoint_url)
+        self.s3 = boto3.client('s3', endpoint_url=network_endpoint_url)
 
     def execute(self, bucket_name: str, object_key: str, content_type: str) -> Dict[str, str]:
         try:
