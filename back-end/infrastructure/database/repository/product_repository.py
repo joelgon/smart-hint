@@ -58,11 +58,16 @@ class ProductRepository:
             print(f"Erro ao atualizar produto: {e}")
             raise
 
-    def delete(self, id: int) -> None:
+    def delete(self, id: int) -> bool:
         try:
-            self.db.query(ProductModel).filter(ProductModel.id == id).delete()
+            product = self.db.query(ProductModel).filter(ProductModel.id == id).first()
+            if not product:
+                return False
+            
+            self.db.delete(product)
             self.db.commit()
+            
+            return True
         except Exception as e:
             self.db.rollback()
-            print(f"Erro ao deletar produto: {e}")
             raise
