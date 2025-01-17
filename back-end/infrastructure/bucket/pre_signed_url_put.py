@@ -10,7 +10,13 @@ network_endpoint_url = os.getenv("NETWORK_S3_ENDPOINT")
 
 class PreSignedUrlPut:
     def __init__(self):
-        self.s3 = boto3.client('s3', endpoint_url=network_endpoint_url)
+        self.s3 = boto3.client(
+            's3',
+            endpoint_url=network_endpoint_url,
+            aws_access_key_id="test",
+            aws_secret_access_key="test",
+        )
+
 
     def execute(self, bucket_name: str, object_key: str, content_type: str) -> Dict[str, str]:
         try:
@@ -27,7 +33,7 @@ class PreSignedUrlPut:
             url = f"{endpoint_url}/{bucket_name}/{object_key}";
         
             return {
-                "pre_signed_url": pre_signed_url,
+                "pre_signed_url": pre_signed_url.replace(network_endpoint_url, endpoint_url),
                 "url": url
             }
         except Exception as e:

@@ -27,5 +27,4 @@ class CreateProductUseCase:
 
             return CreateProduct(data=product, pre_signed_url=url_meta["pre_signed_url"])
         except Exception as e:
-            print(e);
             raise
