@@ -11,17 +11,21 @@ class CreateProductUseCase:
         self.pre_signed_url_put = pre_signed_url_put
 
     def execute(self, body: CreateProductDto) -> CreateProduct:
-        product = self.product_repository.findByEan(body.ean)
+        try:
+            product = self.product_repository.findByEan(body.ean)
 
-        if product:
-            raise HTTPException(
-                status_code=412,
-                detail=f"Produto com EAN '{body.ean}' já existe."
-            )
+            if product:
+                raise HTTPException(
+                    status_code=412,
+                    detail=f"Produto com EAN '{body.ean}' já existe."
+                )
         
-        generated_uuid = uuid.uuid4()
-        url_meta = self.pre_signed_url_put.execute("my-bucket", f"{generated_uuid}.png", "png")
+            generated_uuid = uuid.uuid4()
+            url_meta = self.pre_signed_url_put.execute("my-bucket", f"{generated_uuid}.png", "png")
 
-        product = self.product_repository.create(body, url=url_meta["url"])
+            product = self.product_repository.create(body, url=url_meta["url"])
 
-        return CreateProduct(data=product, pre_signed_url=url_meta["pre_signed_url"])
+            return CreateProduct(data=product, pre_signed_url=url_meta["pre_signed_url"])
+        except Exception as e:
+            print(e);
+            raise

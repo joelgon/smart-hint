@@ -50,9 +50,8 @@ class ProductRepository:
         return ProductEntity(**vars(product_model)) if product_model else None
 
     def update(self, id: int, updates: PartialProductEntity) -> None:
-        print("chega no update")
         try:
-            self.db.query(ProductModel).filter(ProductModel.id == id).update(updates)
+            self.db.query(ProductModel).filter(ProductModel.id == id).update(updates.model_dump())
             self.db.commit()
         except Exception as e:
             self.db.rollback()

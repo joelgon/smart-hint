@@ -24,6 +24,7 @@ class CreateProductDto(BaseModel):
         example="9999999999999999999999999.99"
     )
     local: LocalEnum = Field(..., description="place of sale", example=f"'{LocalEnum.event}', '{LocalEnum.store}'")
+    active: bool = Field(..., description="status", example=True)
 
     @field_validator("price")
     def validate_price(cls, value):

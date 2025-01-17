@@ -51,7 +51,6 @@ def upgrade() -> None:
         tb_products,
         [
             {
-                "id": i + 1,
                 "name": product_names[i % len(product_names)],
                 "description": f"Uma deliciosa xícara de {product_names[i % len(product_names)]}. Perfeito para qualquer momento do dia.",
                 "image_url": image_url,
