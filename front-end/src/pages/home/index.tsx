@@ -10,7 +10,7 @@ import { Link } from "react-router-dom";
 import { InputText } from "primereact/inputtext";
 import { ValidationError } from "yup";
 
-import { listProduct, updatedProject } from "../../services/api";
+import { listProduct, updatedProject, deleteProduct } from "../../services/api";
 import {
   ICreateProductProps,
   ProductEntity,
@@ -87,6 +87,21 @@ const Home = () => {
     }
   };
 
+  const requestDelete = async (id: number) => {
+    await deleteProduct(id);
+
+    setDisableButton(true);
+
+    const response = await listProduct(page, 20, search);
+
+    if (response.length < 20) setLastPage(true);
+    else setLastPage(false);
+
+    setProducts(response);
+
+    setDisableButton(false);
+  };
+
   const itemTemplate = (data: ProductEntity) => {
     return (
       <div className="col-12">
@@ -119,10 +134,12 @@ const Home = () => {
                 onClick={(e) => openModal(e.currentTarget.id)}
               />
               <Button
+                id={data.id.toString()}
                 icon="pi pi-trash"
                 label="Excluir"
                 disabled={false}
                 severity="danger"
+                onClick={(e) => requestDelete(Number(e.currentTarget.id))}
               />
             </div>
           </div>
